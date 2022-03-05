@@ -1,0 +1,61 @@
+version: "3.9"
+services:
+  react-app:
+    image: react-app-dev
+    stdin_open: true
+    ports:
+      - "3000:3000"
+    networks:
+      - mern-app
+    volumes:
+      - ./client/:/usr/src/app
+      - /usr/src/app/node_modules
+
+  mongo:
+    image: mongo:5.0.6
+    ports:
+      - "27017:27017"
+    networks:
+      - mern-app
+    volumes:
+      - mongo-data:/data/db
+    restart: always
+
+  api-server:
+    image: api-server
+    env_file: ./server/config/dev.env
+    ports:
+      - "4000:4000"
+    networks:
+      - mern-app
+    volumes:
+      - ./:/app/
+        # Just specify a path and let the Engine create a volume
+      - /app/node_modules/
+    depends_on:
+      - mongo
+
+  #turborepo
+  turbo:
+    container_name: app_dashboard
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    ports:
+      - "3000:3000"
+      - "1337:1337"
+    environment:
+      - STRAPI_VERSION=4.0.2 # specify your strapi version here (need to be same as package.json)
+    volumes:
+      - ./:/app/
+        # Just specify a path and let the Engine create a volume
+      - /app/node_modules/
+    restart: always
+
+networks:
+  mern-app:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local

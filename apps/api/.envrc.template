@@ -1,0 +1,6 @@
+NODE_ENV="development"
+MONGO_URI="mongodb://mongo:27017/appdb"
+MONGO_DATABASE="appdb"
+API_PORT=4000
+ACCESS_TOKEN_SECRET="access_token_secret"
+REFRESH_TOKEN_SECRET="refresh_token_secret"
