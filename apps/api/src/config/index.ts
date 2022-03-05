@@ -3,7 +3,7 @@ import nconf from "nconf";
 export function initConfig<T extends Configuration>(defaults?: Partial<T>): T {
   nconf.use("memory");
 
-  nconf.env({ lowerCase: true, parseValues: false });
+  nconf.env({ parseValues: false });
 
   if (defaults) {
     nconf.defaults(defaults);

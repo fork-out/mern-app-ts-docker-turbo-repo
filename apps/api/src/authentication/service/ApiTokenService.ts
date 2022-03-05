@@ -1,5 +1,5 @@
 import { randomInt } from "crypto";
-import jsonWebToken, { JwtPayload, verify } from "jsonwebtoken";
+import jsonWebToken, { verify } from "jsonwebtoken";
 import { MiddlewareFn } from "type-graphql";
 import { Service } from "typedi";
 

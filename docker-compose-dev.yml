@@ -33,36 +33,8 @@ services:
       - ./:/app
       - /app/node_modules/
     restart: on-failure
-
-# react-app:
-#   # image: react-app-dev
-#   build:
-#     context: .
-#     dockerfile: .Dockerfile
-#   stdin_open: true
-#   ports:
-#     - "3000:3000"
-#   networks:
-#     - mern-app
-#   volumes:
-#     - ./apps/client/:/usr/src/app
-#     - /usr/src/app/node_modules
-
-# api-server:
-#   # image: api-server
-#   build:
-#     context: .
-#     dockerfile: .Dockerfile
-#   ports:
-#     - "6000:6000"
-#   networks:
-#     - mern-app
-#   volumes:
-#     - ./apps/server/:/usr/src/app
-#     - /usr/src/app/node_modules
-#   depends_on:
-#     - mongo
-
+    depends_on:
+      - mongo
 networks:
   mern-app:
     driver: bridge

@@ -40,7 +40,7 @@ services:
     container_name: app_dashboard
     build:
       context: .
-      dockerfile: dev.Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "3000:3000"
       - "1337:1337"
