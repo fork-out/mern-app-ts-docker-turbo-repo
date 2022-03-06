@@ -1,10 +1,10 @@
 import { Dialog, Transition } from "@headlessui/react";
-import { FlagIcon, HomeIcon, LogoutIcon, UserGroupIcon, XIcon } from "@heroicons/react/solid";
+import { FlagIcon, HomeIcon, LogoutIcon, XIcon } from "@heroicons/react/solid";
 
 import { Fragment } from "react";
 
 import { signOut } from "firebase/auth";
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 
 import { auth } from "../firebase";
 import { classNames } from "../utils/classnames.utils";
@@ -65,9 +65,9 @@ export const Sidebar: React.FC<{
                 </div>
               </Transition.Child>
               <div className="flex-1 h-0 pt-0 pb-4 overflow-y-auto">
-                <div className="flex-shrink-0 flex items-center px-4 py-5 bg-sky-900">
-                  <img className="h-8 w-auto" src="./assets/logo-wide.svg" alt="Unravel Carbon" />
-                </div>
+                <Link to="/" className="flex-shrink-0 flex items-center px-4 py-5 bg-sky-900">
+                  <img className="h-8 w-auto" src="./assets/logo-wide.svg" alt="App Dashboard" />
+                </Link>
                 <nav className="mt-5 px-2 space-y-1">
                   {navigation.map(item => (
                     <NavLink
@@ -105,9 +105,9 @@ export const Sidebar: React.FC<{
         {/* Sidebar component, swap this element with another sidebar if you like */}
         <div className="flex-1 flex flex-col min-h-0 bg-sky-700">
           <div className="flex-1 flex flex-col pt-0 pb-4 overflow-y-auto">
-            <div className="flex items-center flex-shrink-0 px-4 py-5 bg-sky-900">
-              <img className="h-8 w-auto" src="./assets/logo-wide.svg" alt="Unravel Carbon" />
-            </div>
+            <Link to="/" className="flex items-center flex-shrink-0 px-4 py-5 bg-sky-900">
+              <img className="h-8 w-auto" src="./assets/logo-wide.svg" alt="App Dashboard" />
+            </Link>
             <nav className="mt-5 flex-1 px-2 space-y-1">
               {navigation.map(item => (
                 <NavLink

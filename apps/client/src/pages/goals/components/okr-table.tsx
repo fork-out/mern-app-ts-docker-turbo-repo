@@ -5,7 +5,7 @@ const goals = [
     department: "Engineering",
     priority: 1,
     dueDate: "19th Wed, Nov 2022",
-    email: "zain@unravelcarbon.com",
+    email: "zainzafar90@gmail.com",
     image: "https://avatars.githubusercontent.com/u/9788221?v=4"
   }
 ];

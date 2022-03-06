@@ -5,7 +5,7 @@ import { Layout } from "./components/layout";
 import { AuthProvider } from "./context/auth-context";
 import { ForgotPassword } from "./pages/auth/forgot-password";
 import { Login } from "./pages/auth/login";
-import { Goal } from "./pages/goal";
+import { Goals } from "./pages/goals";
 import { NotFound } from "./pages/not-found";
 import { Overview } from "./pages/overview";
 
@@ -15,7 +15,7 @@ export const MainApp = () => {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Overview />} />
-          <Route path="/goal" element={<Goal />} />
+          <Route path="/goals" element={<Goals />} />
         </Route>
 
         <Route path="/login" element={<Login />} />

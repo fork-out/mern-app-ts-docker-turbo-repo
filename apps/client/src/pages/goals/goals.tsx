@@ -1,16 +1,15 @@
-import { useState } from "react";
-
 import { ChevronDownIcon } from "@heroicons/react/solid";
+
+import { useState } from "react";
 
 import { CustomMenu } from "../../components/dropdown";
 import { EmptyState } from "../../components/empty-state";
 import { Search } from "../../components/search";
 import { KeyResultsIcon, ObjectiveIcon } from "../../icons";
-
 import { GoalDetails } from "./components/goal-details";
 import { OKRTable } from "./components/okr-table";
 
-export const Goal = () => {
+export const Goals = () => {
   const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   const [selectedGoal, setSelectedGoal] = useState("");
 
