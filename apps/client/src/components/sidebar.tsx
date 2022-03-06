@@ -12,7 +12,7 @@ import { CustomMenu } from "./dropdown";
 
 const navigation = [
   { name: "Overview", link: "/", icon: HomeIcon },
-  { name: "Goals", link: "/goal", icon: FlagIcon }
+  { name: "Goals", link: "/goals", icon: FlagIcon }
 ];
 
 export const Sidebar: React.FC<{
