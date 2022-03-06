@@ -1,38 +1,56 @@
 import React, { createContext, useEffect, useState } from "react";
 
-import { onAuthStateChanged } from "firebase/auth";
+import toast from "react-hot-toast";
 
 import { User } from "../@types/user";
 import ViewLoader from "../components/view-loader";
-import { auth } from "../firebase";
+import { useMeLazyQuery } from "../generated/graphql";
+import { setAccessToken } from "../utils/token.utils";
 
 interface AuthContextType {
-  currentUser: User;
-  setCurrentUser: (value: User) => void;
+  currentUser: User | any;
+  setCurrentUser: (value: User | any) => void;
 }
 
 export const AuthContext = createContext<AuthContextType>(null!);
 
 export const AuthProvider: React.FC = ({ children }) => {
-  const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [meQuery] = useMeLazyQuery();
 
   useEffect(() => {
-    setLoading(true);
-    onAuthStateChanged(auth, user => {
-      setLoading(false);
-      if (user) {
-        // User is signed in, see docs for a list of available properties
-        // https://firebase.google.com/docs/reference/js/firebase.User
-        setCurrentUser(user);
-      } else {
-        // User is signed out
+    fetch("http://localhost:4000/refresh_token", {
+      method: "POST",
+      credentials: "include"
+    }).then(async res => {
+      setLoading(true);
+      try {
+        const data = await res.json();
+        if (data.accessToken) {
+          setAccessToken(data.accessToken);
+          try {
+            const { data } = await meQuery();
+            setCurrentUser(data?.me);
+          } catch (error) {
+            setCurrentUser(null);
+            console.error(error);
+            toast.error("Error loading the user.");
+          } finally {
+            setLoading(false);
+          }
+        }
+      } catch (error) {
         setCurrentUser(null);
+        console.error(error);
+        toast.error("Error loading the user.");
+      } finally {
+        setLoading(false);
       }
     });
-  }, []);
+  }, [meQuery]);
 
-  const handleSetUser = (user: any) => setCurrentUser(user);
+  const handleSetUser = (user: User) => setCurrentUser(user);
 
   return (
     <ViewLoader isLoading={loading} loadingMessage="Loading...">

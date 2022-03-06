@@ -8,26 +8,23 @@ input CredentialsInput {
   password: String!
 }
 
-"""
-The javascript `Date` as string. Type represents date and time as the ISO Date string.
-"""
-scalar DateTime
-
 type LoginResponse {
-  expires: DateTime!
-  token: String!
+  accessToken: String!
+  user: User!
 }
 
 type Mutation {
   login(input: CredentialsInput!): LoginResponse!
+  logout: Boolean!
   register(input: UserCreateInput!): UserSchema!
   userCreate(input: UserCreateInput!): UserSchema!
 }
 
 type Query {
-  hello: String!
   me: UserSchema!
 }
+
+scalar User
 
 input UserCreateInput {
   email: String!
@@ -37,7 +34,7 @@ input UserCreateInput {
 }
 
 type UserSchema {
-  email: String
+  email: String!
   id: String!
   name: String!
   role: String!

@@ -3,11 +3,12 @@ import { FlagIcon, HomeIcon, LogoutIcon, XIcon } from "@heroicons/react/solid";
 
 import { Fragment } from "react";
 
-import { signOut } from "firebase/auth";
 import { Link, NavLink } from "react-router-dom";
 
-import { auth } from "../firebase";
+import { useLogoutMutation } from "../generated/graphql";
+import { useAuth } from "../hooks/use-auth";
 import { classNames } from "../utils/classnames.utils";
+import { setAccessToken } from "../utils/token.utils";
 import { CustomMenu } from "./dropdown";
 
 const navigation = [
@@ -140,9 +141,15 @@ export const Sidebar: React.FC<{
 };
 
 const UserNavItem = () => {
+  const [logout, { client }] = useLogoutMutation();
+  const { setCurrentUser } = useAuth();
+
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      await logout();
+      await client!.resetStore();
+      setCurrentUser(null);
+      setAccessToken("");
     } catch (error) {
       console.error(error);
     }

@@ -9,26 +9,31 @@ import { Server } from "http";
 import { buildSchema } from "type-graphql";
 import Container from "typedi";
 
-import { ApiToken } from "./ApiToken";
+import {
+  JID_COOKIE_KEY,
+  createAccessToken,
+  createRefreshToken,
+  setRefreshToken,
+  verifyToken
+} from "./authentication/helpers/tokenHelper";
 import { AuthenticationResolver } from "./authentication/resolver/AuthenticationResolver";
-import { ApiDevelopmentDefaults, Configuration, initConfig, useConfig } from "./config";
 import { AppDatabase } from "./database/AppDatabase";
 import { BaseService } from "./shared/BaseService";
 import { UserResolvers } from "./users/resolvers/UserResolver";
+
+const { API_PORT, MONGO_URI, MONGO_DATABASE, NODE_ENV, REFRESH_TOKEN_SECRET } = process.env;
 
 export class ApiService extends BaseService {
   private server: Server | undefined;
 
   public constructor() {
-    const { NODE_ENV } = initConfig<Configuration>(ApiDevelopmentDefaults);
     super({ location: "api", logLevel: NODE_ENV === "development" ? "debug" : "info" });
   }
 
   protected async onRun(): Promise<void> {
-    const { API_PORT, MONGO_URI, MONGO_DATABASE, NODE_ENV } = useConfig<Configuration>();
     const isDevMode = NODE_ENV === "development";
 
-    const database = new AppDatabase(MONGO_URI, MONGO_DATABASE);
+    const database = new AppDatabase(MONGO_URI!, MONGO_DATABASE!);
     await database.connect();
     await database.createAllIndexes();
 
@@ -41,15 +46,22 @@ export class ApiService extends BaseService {
     });
 
     const app = express();
+    app.use(
+      cors({
+        origin: isDevMode
+          ? ["http://localhost:3000", "https://studio.apollographql.com"]
+          : undefined,
+        credentials: true
+      })
+    );
     const httpServer = http.createServer(app);
     app.use(helmet({ frameguard: false }));
-    app.use(cors());
     app.use(cookieParser());
 
     if (isDevMode) {
-      console.debug("RUNNING IN DEV MODE");
+      console.info("RUNNING IN DEV MODE");
       app.use((req, _res, next) => {
-        console.debug(`${req.method}: ${req.path}`);
+        console.info(`${req.method}: ${req.path}`);
         next();
       });
     }
@@ -59,16 +71,43 @@ export class ApiService extends BaseService {
       return res.status(200).send({ message: "ok", time: new Date() });
     });
 
+    app.post("/refresh_token", async (req, res) => {
+      const token = req.cookies[JID_COOKIE_KEY];
+
+      if (!token) {
+        return res.send({ ok: false, accessToken: "" });
+      }
+
+      let payload: any = null;
+      try {
+        payload = verifyToken(token, REFRESH_TOKEN_SECRET!);
+      } catch (err) {
+        console.error(err);
+        return res.send({ ok: false, accessToken: "" });
+      }
+
+      const user = await database.users.get(payload.userId);
+
+      if (!user) {
+        return res.send({ ok: false, accessToken: "" });
+      }
+      const refreshToken = createRefreshToken(user.id);
+      setRefreshToken(res, refreshToken);
+
+      return res.send({ ok: true, accessToken: createAccessToken(user.id) });
+    });
+
     const apiApolloServer = new ApolloServer({
       schema: apiSchema,
       plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
       context: ({ req, res }) => ({ req, res })
     });
+
     await apiApolloServer.start();
     apiApolloServer.applyMiddleware({ app, path: "/graphql", cors: false });
 
     this.server = app.listen(API_PORT, () =>
-      console.log(`✨ Server ready at http://localhost:${API_PORT}${apiApolloServer.graphqlPath}`)
+      console.info(`✨ Server ready at http://localhost:${API_PORT}${apiApolloServer.graphqlPath}`)
     );
   }
 
@@ -85,7 +124,3 @@ export class ApiService extends BaseService {
     this.logger.info("stopped");
   }
 }
-
-export type Context = {
-  user: ApiToken;
-};

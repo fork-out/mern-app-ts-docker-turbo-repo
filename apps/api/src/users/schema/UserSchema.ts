@@ -10,13 +10,13 @@ export class UserSchema {
   }
 
   @Field(() => String)
-  public id!: UserId | string;
+  public id!: UserId;
 
   @Field(() => String)
   public name!: string;
 
-  @Field(() => String, { nullable: true })
-  public email?: string;
+  @Field(() => String)
+  public email!: string;
 
   @Field(() => String)
   public role!: UserRole;

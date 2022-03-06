@@ -1,19 +1,27 @@
 import { compare } from "bcryptjs";
+import { Response } from "express";
 import { Service } from "typedi";
 
 import { AppDatabase } from "../../database/AppDatabase";
 import { ApiServiceError } from "../../shared/ApiServiceError";
+import { ApiUser } from "../../types/user";
+import {
+  JID_COOKIE_KEY,
+  createAccessToken,
+  createRefreshToken,
+  setRefreshToken
+} from "../helpers/tokenHelper";
 import { LoginResponse } from "../schema/AuthenticationSchema";
-import { ApiTokenService } from "./ApiTokenService";
 
 @Service()
 export class AuthenticationService {
-  public constructor(
-    private readonly database: AppDatabase,
-    private readonly apiTokenService: ApiTokenService
-  ) {}
+  public constructor(private readonly database: AppDatabase) {}
 
-  public async login(email: string, password: string): Promise<LoginResponse | ApiServiceError> {
+  public async login(
+    email: string,
+    password: string,
+    response: Response
+  ): Promise<LoginResponse | ApiServiceError> {
     const user = await this.database.users.getByEmail(email.toLocaleLowerCase());
 
     if (!user) {
@@ -26,10 +34,26 @@ export class AuthenticationService {
       return new ApiServiceError(`Invalid credentials`, "client-error");
     }
 
-    const { token, expires } = await this.apiTokenService.generateSignedToken(user);
+    // Login Successful
+    const accessToken = createAccessToken(user.id);
+    const refreshToken = createRefreshToken(user.id);
+    setRefreshToken(response, refreshToken);
+
     return {
-      token,
-      expires
+      accessToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        profilePic: user.profilePic
+      } as ApiUser
     };
+  }
+
+  public logout(response: Response): boolean {
+    response.clearCookie(JID_COOKIE_KEY);
+    setRefreshToken(response, "");
+    return true;
   }
 }

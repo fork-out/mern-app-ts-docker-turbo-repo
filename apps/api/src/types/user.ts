@@ -12,3 +12,5 @@ export type User = {
   password: string;
   profilePic?: string;
 };
+
+export type ApiUser = Omit<User, "password" | "createdAt" | "updatedAt">;

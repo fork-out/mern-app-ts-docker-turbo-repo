@@ -1,9 +1,10 @@
-import { Context } from "joi";
 import { Arg, Ctx, Mutation, Query, Resolver, UseMiddleware } from "type-graphql";
 import { Service } from "typedi";
 import { isNativeError } from "util/types";
 
-import { isAuthenticated } from "../../authentication/service/ApiTokenService";
+import { isAuthenticated } from "../../authentication/helpers/tokenHelper";
+import { AuthContext } from "../../context/AuthContext";
+import { UserId } from "../../types/id";
 import { UserCreateInput } from "../schema/UserInput";
 import { UserSchema } from "../schema/UserSchema";
 import { UserService } from "../service/UserService";
@@ -13,20 +14,19 @@ import { UserService } from "../service/UserService";
 export class UserResolvers {
   public constructor(private readonly userService: UserService) {}
 
-  @Query(() => String)
-  hello() {
-    return "hi!";
-  }
-
   @Query(() => UserSchema)
   @UseMiddleware(isAuthenticated)
-  public me(@Ctx() { user }: Context): UserSchema {
-    return new UserSchema({
-      id: user.userId,
-      name: user.name,
-      email: user.email,
-      role: user.role
-    });
+  public async me(@Ctx() { payload }: AuthContext): Promise<UserSchema | null> {
+    const { userId } = payload!;
+    if (userId) {
+      const user = await this.userService.getById(userId as UserId);
+
+      if (isNativeError(user)) {
+        throw user;
+      }
+      return user;
+    }
+    return null;
   }
 
   @Mutation(() => UserSchema)

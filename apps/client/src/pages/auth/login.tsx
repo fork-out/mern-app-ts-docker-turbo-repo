@@ -1,19 +1,18 @@
 import { ChangeEvent, SyntheticEvent, useState } from "react";
 
-import { FirebaseError } from "firebase/app";
-import { UserCredential, signInWithEmailAndPassword } from "firebase/auth";
 import toast from "react-hot-toast";
 import { Link, Navigate, useLocation } from "react-router-dom";
 
-import { User } from "../../@types/user";
 import { Spinner } from "../../components/spinner";
-import { auth } from "../../firebase";
+import { CredentialsInput, useLoginMutation } from "../../generated/graphql";
 import { useAuth } from "../../hooks/use-auth";
+import { setAccessToken } from "../../utils/token.utils";
 
 export const Login = () => {
   const location = useLocation();
-  const { currentUser, setCurrentUser } = useAuth();
+  const [login] = useLoginMutation();
   const [loading, setLoading] = useState(false);
+  const { currentUser, setCurrentUser } = useAuth();
 
   const from = (location?.state as any)?.from?.pathname || "/";
 
@@ -24,16 +23,23 @@ export const Login = () => {
   const handleLoginWithPassword = async (email: string, password: string) => {
     try {
       setLoading(true);
-      const result: UserCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = result.user as User;
-      if (user) {
-        setCurrentUser(user);
+      const { data } = await login({
+        variables: {
+          input: {
+            email,
+            password
+          } as CredentialsInput
+        }
+      });
+
+      if (data) {
+        setCurrentUser(data.login.user);
+        setAccessToken(data.login.accessToken);
         toast.success("Successfully logged in.");
       }
-    } catch (e) {
-      const error = e as FirebaseError;
+    } catch (error: any) {
       console.error(error);
-      if (error.message.includes("user-not-found")) {
+      if (error?.message.includes("user-not-found")) {
         toast.error("User doesn't exist. Contact your administrator.");
       } else {
         toast.error("Invalid credentials. Please try again.");

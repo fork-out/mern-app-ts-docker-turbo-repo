@@ -1,10 +1,13 @@
 import { Field, ObjectType } from "type-graphql";
 
+import { ApiUser } from "../../types/user";
+import { UserScalar } from "./Scalars";
+
 @ObjectType()
 export class LoginResponse {
   @Field({ nullable: false })
-  token!: string;
+  accessToken!: string;
 
-  @Field({ nullable: false })
-  expires!: Date;
+  @Field(() => UserScalar, { nullable: false })
+  user!: ApiUser;
 }
